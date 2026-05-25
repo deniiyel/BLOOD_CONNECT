@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- android/app/src/main/res/drawable/launch_background.xml -->
+<!--
+  Blood Connect splash screen:
+  • Solid blood-red background (#E53935)
+  • Centered heart icon (white)
+  
+  To use a custom PNG logo instead of the heart shape, replace the
+  <bitmap> item below with your own drawable asset.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Background fill -->
+    <item>
+        <color android:color="#E53935"/>
+    </item>
+
+    <!-- Centered white circle -->
+    <item
+        android:gravity="center"
+        android:width="120dp"
+        android:height="120dp">
+        <shape android:shape="oval">
+            <solid android:color="#33FFFFFF"/>
+        </shape>
+    </item>
+
+    <!--
+      If you add a res/drawable/ic_splash_heart.png (white heart icon),
+      uncomment this block:
+
+    <item android:gravity="center">
+        <bitmap
+            android:src="@drawable/ic_splash_heart"
+            android:gravity="center" />
+    </item>
+    -->
+
+</layer-list>

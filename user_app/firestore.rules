@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function userExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isDonor() {
+      return isSignedIn() && userExists() && userRole() == 'donor';
+    }
+
+    function isRecipient() {
+      return isSignedIn() && userExists() && userRole() == 'recipient';
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid);
+    }
+
+    match /donors/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(uid) && isDonor();
+      allow update: if isOwner(uid) && isDonor();
+    }
+
+    match /requests/{requestId} {
+      allow read: if isSignedIn() &&
+        (resource.data.recipientId == request.auth.uid ||
+         resource.data.donorId == request.auth.uid);
+
+      allow create: if isRecipient() &&
+        request.resource.data.recipientId == request.auth.uid;
+
+      allow update: if isSignedIn() && (
+        (resource.data.donorId == request.auth.uid &&
+         resource.data.expiresAt > request.time &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['status', 'respondedAt'])) ||
+        (resource.data.recipientId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['status', 'completedAt']))
+      );
+    }
+  }
+}
